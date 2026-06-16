@@ -89,9 +89,12 @@ export async function localGetOrCreateProfile(
       name,
       plan: "free",
       requestsUsed: 0,
-      requestsLimit: 50,
+      requestsLimit: 9999,
     };
     db.profiles.push(profile);
+    await saveDb(db);
+  } else if (profile.requestsLimit < 1000) {
+    profile.requestsLimit = 9999;
     await saveDb(db);
   }
   return profile;

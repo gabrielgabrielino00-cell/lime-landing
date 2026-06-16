@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ChevronDown, Lock } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { AI_MODELS, type ModelId, type ModelProvider } from "@/types/models";
-import type { UserPlan } from "@/types/project";
 import { cn } from "@/lib/cn";
 
 const providerColors: Record<ModelProvider, string> = {
@@ -16,11 +15,10 @@ const providerColors: Record<ModelProvider, string> = {
 
 export default function ModelSwitcher({
   selectedModelId,
-  plan,
   onSelect,
 }: {
   selectedModelId: ModelId;
-  plan: UserPlan;
+  plan?: string;
   onSelect: (id: ModelId) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -44,61 +42,51 @@ export default function ModelSwitcher({
 
       {open && (
         <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-xl border border-white/[0.08] bg-bg-secondary/95 shadow-2xl backdrop-blur-xl">
-          {AI_MODELS.map((model) => {
-            const freeModels = new Set(["claude-sonnet-4-6", "groq-llama"]);
-            const locked =
-              (model.requiresPro && plan === "free") ||
-              (plan === "free" && !freeModels.has(model.id));
-            return (
-              <button
-                key={model.id}
-                type="button"
-                disabled={locked}
-                onClick={() => {
-                  if (locked) return;
-                  onSelect(model.id);
-                  setOpen(false);
-                }}
-                className={cn(
-                  "flex w-full gap-3 border-b border-bg-elevated/60 px-3 py-3 text-left last:border-0",
-                  locked ? "cursor-not-allowed opacity-50" : "hover:bg-bg-surface",
-                  model.id === selectedModelId && "bg-accent-dim",
+          {AI_MODELS.map((model) => (
+            <button
+              key={model.id}
+              type="button"
+              onClick={() => {
+                onSelect(model.id);
+                setOpen(false);
+              }}
+              className={cn(
+                "flex w-full gap-3 border-b border-bg-elevated/60 px-3 py-3 text-left last:border-0 hover:bg-bg-surface",
+                model.id === selectedModelId && "bg-accent-dim",
+              )}
+            >
+              <span className="mt-1">
+                {model.id === selectedModelId ? (
+                  <Check className="h-3.5 w-3.5 text-accent" />
+                ) : (
+                  <span className="inline-block h-2 w-2 rounded-full border border-text-faint" />
                 )}
-              >
-                <span className="mt-1">
-                  {model.id === selectedModelId ? (
-                    <Check className="h-3.5 w-3.5 text-accent" />
-                  ) : (
-                    <span className="inline-block h-2 w-2 rounded-full border border-text-faint" />
-                  )}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="flex flex-wrap items-center gap-2 text-sm font-medium">
+                  {model.name}
+                  <span
+                    className={cn(
+                      "rounded px-1.5 py-0.5 font-mono text-[9px] uppercase",
+                      providerColors[model.provider],
+                    )}
+                  >
+                    {model.provider}
+                  </span>
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className="flex flex-wrap items-center gap-2 text-sm font-medium">
-                    {model.name}
+                <span className="mt-1 flex flex-wrap gap-1">
+                  {model.tags.map((tag) => (
                     <span
-                      className={cn(
-                        "rounded px-1.5 py-0.5 font-mono text-[9px] uppercase",
-                        providerColors[model.provider],
-                      )}
+                      key={tag}
+                      className="rounded bg-bg-elevated px-1.5 py-0.5 font-mono text-[9px] text-text-muted"
                     >
-                      {model.provider}
+                      {tag}
                     </span>
-                    {locked && <Lock className="h-3 w-3 text-warning" />}
-                  </span>
-                  <span className="mt-1 flex flex-wrap gap-1">
-                    {model.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded bg-bg-elevated px-1.5 py-0.5 font-mono text-[9px] text-text-muted"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </span>
+                  ))}
                 </span>
-              </button>
-            );
-          })}
+              </span>
+            </button>
+          ))}
         </div>
       )}
     </div>

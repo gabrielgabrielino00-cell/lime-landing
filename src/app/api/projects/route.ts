@@ -22,9 +22,9 @@ export async function POST(request: Request) {
   };
 
   const existing = await localListProjects(ctx.session.user.id);
-  if (ctx.profile.plan === "free" && existing.length >= 5) {
+  if (ctx.profile.plan === "free" && existing.length >= 50) {
     return Response.json(
-      { error: "Free plan allows 5 projects. Upgrade to Pro." },
+      { error: "Limite progetti raggiunto (50)." },
       { status: 403 },
     );
   }

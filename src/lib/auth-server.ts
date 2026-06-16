@@ -22,25 +22,16 @@ export async function checkGenerationAllowed(
   profile: LocalProfile,
   modelId: ModelId,
 ) {
-  const model = getModel(modelId);
-  if (model.requiresPro && profile.plan === "free") {
-    return { ok: false as const, error: "This model requires a Pro plan.", code: "PRO_REQUIRED" };
-  }
+  getModel(modelId);
+
   if (profile.requestsUsed >= profile.requestsLimit) {
     return {
       ok: false as const,
-      error: "Monthly request limit reached. Upgrade to Pro.",
+      error: "Limite richieste raggiunto. Vai in Settings → Upgrade Pro.",
       code: "RATE_LIMIT",
     };
   }
-  const freeModels = new Set<ModelId>(["claude-sonnet-4-6", "groq-llama"]);
-  if (profile.plan === "free" && !freeModels.has(modelId)) {
-    return {
-      ok: false as const,
-      error: "Free plan supports Claude Sonnet and Groq Llama only.",
-      code: "MODEL_LOCKED",
-    };
-  }
+
   return { ok: true as const };
 }
 

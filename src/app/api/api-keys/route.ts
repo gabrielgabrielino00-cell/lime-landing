@@ -6,7 +6,7 @@ export async function POST(request: Request) {
   const ctx = await requireUser();
   if (!ctx) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  if (ctx.profile.plan === "free") {
+  if (ctx.profile.plan === "free" && process.env.NODE_ENV === "production") {
     return Response.json(
       { error: "API keys require Pro or Team plan." },
       { status: 403 },
