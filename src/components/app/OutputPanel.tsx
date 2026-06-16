@@ -63,16 +63,16 @@ export default function OutputPanel({
   }
 
   return (
-    <div className="flex h-full flex-col bg-bg-secondary/60">
-      <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
-        <div className="flex gap-1">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-bg-secondary/60">
+      <div className="flex shrink-0 items-center justify-between border-b border-white/[0.06] px-4 py-3">
+        <div className="flex gap-1 overflow-x-auto">
           {project.files.map((f, i) => (
             <button
               key={f.id}
               type="button"
               onClick={() => setActiveFile(i)}
               className={cn(
-                "rounded-lg px-3 py-1.5 font-mono text-xs transition",
+                "shrink-0 rounded-lg px-3 py-1.5 font-mono text-xs transition",
                 i === activeFile
                   ? "bg-accent-dim text-accent ring-1 ring-accent-border/30"
                   : "text-text-muted hover:bg-bg-surface/80",
@@ -82,7 +82,7 @@ export default function OutputPanel({
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           <button
             type="button"
             onClick={() => setEditable((v) => !v)}
@@ -102,7 +102,7 @@ export default function OutputPanel({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1">
+      <div className="min-h-0 flex-1 overflow-hidden">
         {showDiff && prevVersion ? (
           <pre className="h-full overflow-auto p-4 font-mono text-xs leading-relaxed text-success">
             {`--- ${prevVersion.label}\n+++ current\n+ ${file.content.split("\n").join("\n+ ")}`}
@@ -118,15 +118,15 @@ export default function OutputPanel({
       </div>
 
       {project.versions.length > 0 && (
-        <div className="max-h-36 overflow-y-auto border-t border-white/[0.06] p-4">
+        <div className="max-h-28 shrink-0 overflow-y-auto border-t border-white/[0.06] p-3">
           <p className="mb-2 font-mono text-[10px] uppercase tracking-wider text-text-muted">
             Versions
           </p>
-          <ul className="space-y-1.5">
+          <ul className="space-y-1">
             {project.versions.map((v) => (
               <li
                 key={v.id}
-                className="rounded-lg border border-white/[0.04] bg-bg-primary/40 px-3 py-2 font-mono text-[10px] text-text-muted"
+                className="rounded-lg border border-white/[0.04] bg-bg-primary/40 px-3 py-1.5 font-mono text-[10px] text-text-muted"
               >
                 <span className="text-accent">{v.label}</span> · {v.modelId}
               </li>

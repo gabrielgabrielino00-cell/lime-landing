@@ -18,7 +18,7 @@ export default function AppSidebar({
   onCreate: () => void;
 }) {
   return (
-    <aside className="flex h-full w-64 flex-col border-r border-white/[0.06] bg-bg-secondary/90 backdrop-blur-sm">
+    <aside className="flex h-full min-h-0 w-64 shrink-0 flex-col overflow-hidden border-r border-white/[0.06] bg-bg-secondary/90 backdrop-blur-sm">
       <div className="border-b border-white/[0.06] p-4">
         <Link href="/" className="font-display text-lg font-bold text-gradient">
           LimeForge
@@ -38,7 +38,7 @@ export default function AppSidebar({
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3">
         <p className="px-2 py-2 font-mono text-[10px] uppercase tracking-wider text-text-muted">
           Projects
         </p>
@@ -71,7 +71,7 @@ export default function AppSidebar({
         </div>
       </div>
 
-      <div className="border-t border-white/[0.06] p-4">
+      <div className="shrink-0 border-t border-white/[0.06] p-4">
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-dim text-sm font-bold text-accent">
             {profile.name[0]}

@@ -28,7 +28,7 @@ export default function ChatPanel({
   const [streamText, setStreamText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [aiMode, setAiMode] = useState<"live" | "demo">("demo");
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
   const quickPromptRan = useRef(false);
 
   useEffect(() => {
@@ -36,6 +36,16 @@ export default function ChatPanel({
       .then((r) => r.json())
       .then((d: { mode?: "live" | "demo" }) => setAiMode(d.mode ?? "demo"));
   }, []);
+
+  function scrollMessagesToBottom() {
+    const el = messagesRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }
+
+  useEffect(() => {
+    scrollMessagesToBottom();
+  }, [project.messages.length, streamText]);
 
   async function runGeneration(prompt: string) {
     if (!prompt.trim() || streaming) return;
@@ -73,7 +83,7 @@ export default function ChatPanel({
     } finally {
       setStreaming(false);
       setStreamText("");
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      requestAnimationFrame(scrollMessagesToBottom);
     }
   }
 
@@ -98,8 +108,9 @@ export default function ChatPanel({
   ];
 
   return (
-    <div className="flex h-full flex-col bg-bg-primary/80">
-      <div className="border-b border-white/[0.06] p-4">
+    <div className="flex h-full min-h-0 flex-col bg-bg-primary/80">
+      {/* Header — fixed height */}
+      <div className="relative z-20 shrink-0 border-b border-white/[0.06] p-4">
         <div className="mb-3 flex items-center justify-between gap-2">
           <p className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
             AI Chat
@@ -122,7 +133,11 @@ export default function ChatPanel({
         />
       </div>
 
-      <div className="flex-1 space-y-4 overflow-y-auto p-4">
+      {/* Messages — scrollable middle */}
+      <div
+        ref={messagesRef}
+        className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4"
+      >
         {project.messages.length === 0 && !streaming && (
           <div className="rounded-2xl border border-white/[0.06] bg-bg-secondary/60 p-5">
             <div className="flex items-center gap-2 text-accent">
@@ -154,8 +169,8 @@ export default function ChatPanel({
             className={cn(
               "rounded-2xl border px-4 py-3 text-sm",
               msg.role === "user"
-                ? "ml-8 border-white/[0.06] bg-bg-surface/80"
-                : "mr-4 border-accent-border/30 bg-bg-secondary/80",
+                ? "ml-4 border-white/[0.06] bg-bg-surface/80"
+                : "mr-2 border-accent-border/30 bg-bg-secondary/80",
             )}
           >
             <p className="mb-2 font-mono text-[10px] uppercase tracking-wider text-text-muted">
@@ -168,7 +183,7 @@ export default function ChatPanel({
         ))}
 
         {streaming && (
-          <div className="mr-4 rounded-2xl border border-accent-border/40 bg-bg-secondary/80 px-4 py-3 text-sm">
+          <div className="mr-2 rounded-2xl border border-accent-border/40 bg-bg-secondary/80 px-4 py-3 text-sm">
             <p className="mb-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-accent">
               <Loader2 className="h-3 w-3 animate-spin" />
               Generating…
@@ -186,17 +201,16 @@ export default function ChatPanel({
             )}
           </div>
         )}
-
-        <div ref={bottomRef} />
       </div>
 
-      {error && (
-        <div className="mx-4 mb-2 rounded-xl border border-error/40 bg-error/10 px-4 py-3 text-sm text-error">
-          {error}
-        </div>
-      )}
+      {/* Input — pinned bottom */}
+      <div className="shrink-0 border-t border-white/[0.06] bg-bg-primary/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        {error && (
+          <div className="mb-3 rounded-xl border border-error/40 bg-error/10 px-4 py-2 text-sm text-error">
+            {error}
+          </div>
+        )}
 
-      <div className="border-t border-white/[0.06] p-4">
         <div className="flex gap-3">
           <textarea
             value={input}
@@ -228,7 +242,7 @@ export default function ChatPanel({
             )}
           </button>
         </div>
-        <div className="mt-3 flex justify-between font-mono text-[10px] text-text-muted">
+        <div className="mt-2 flex justify-between font-mono text-[10px] text-text-muted">
           <span>
             {profile.requestsUsed}/{profile.requestsLimit} requests
           </span>
@@ -237,7 +251,7 @@ export default function ChatPanel({
         {project.messages.some((m) => m.role === "assistant") && (
           <button
             type="button"
-            className="mt-2 flex items-center gap-1 text-xs text-text-muted hover:text-accent"
+            className="mt-1 flex items-center gap-1 text-xs text-text-muted hover:text-accent"
             onClick={() => {
               const lastUser = [...project.messages]
                 .reverse()

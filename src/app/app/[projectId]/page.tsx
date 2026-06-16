@@ -10,7 +10,7 @@ export default async function ProjectPage({
   return (
     <Suspense
       fallback={
-        <div className="flex h-screen items-center justify-center bg-bg-primary text-text-muted">
+        <div className="flex h-full items-center justify-center bg-bg-primary text-text-muted">
           Loading workspace…
         </div>
       }
