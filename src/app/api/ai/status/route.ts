@@ -14,7 +14,11 @@ export async function GET() {
     ollama: Boolean(process.env.OLLAMA_BASE_URL ?? "http://127.0.0.1:11434"),
   };
 
-  const anyReal = Object.values(providers).some(Boolean);
+  const anyReal =
+    providers.anthropic ||
+    providers.openai ||
+    providers.google ||
+    providers.groq;
 
   return Response.json({
     providers,
