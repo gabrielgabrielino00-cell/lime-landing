@@ -37,7 +37,11 @@ export default function LoginPage() {
           </ul>
         </div>
 
-        <LoginForm providers={providers} callbackBase={OAUTH_CALLBACK_URL} />
+        <LoginForm
+          providers={providers}
+          callbackBase={OAUTH_CALLBACK_URL}
+          showDevLogin={process.env.NODE_ENV === "development"}
+        />
       </div>
     </div>
   );

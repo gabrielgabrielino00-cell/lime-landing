@@ -6,17 +6,6 @@ import { getOAuthProviders } from "@/lib/oauth";
 
 const oauth = getOAuthProviders();
 
-function devSocialUser(provider: "google" | "github", email: string) {
-  const clean = email.trim().toLowerCase();
-  if (!clean.includes("@")) return null;
-  const name = clean.split("@")[0] ?? "User";
-  return {
-    id: `${provider}-${clean}`,
-    email: clean,
-    name: name.charAt(0).toUpperCase() + name.slice(1),
-  };
-}
-
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
   session: { strategy: "jwt" },
@@ -30,19 +19,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             authorization: { params: { prompt: "select_account" } },
           }),
         ]
-      : [
-          Credentials({
-            id: "google-local",
-            name: "Google",
-            credentials: {
-              email: { label: "Email", type: "email" },
-            },
-            async authorize(credentials) {
-              const email = String(credentials?.email ?? "");
-              return devSocialUser("google", email);
-            },
-          }),
-        ]),
+      : []),
     ...(oauth.github
       ? [
           GitHub({
@@ -50,34 +27,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             clientSecret: process.env.AUTH_GITHUB_SECRET!,
           }),
         ]
-      : [
+      : []),
+    ...(process.env.NODE_ENV === "development"
+      ? [
           Credentials({
-            id: "github-local",
-            name: "GitHub",
+            id: "dev-login",
+            name: "Dev Login",
             credentials: {
               email: { label: "Email", type: "email" },
             },
             async authorize(credentials) {
-              const email = String(credentials?.email ?? "");
-              return devSocialUser("github", email);
+              const email = String(credentials?.email ?? "dev@limeforge.local");
+              return {
+                id: `local-${email}`,
+                email,
+                name: email.split("@")[0] ?? "Creator",
+              };
             },
           }),
-        ]),
-    Credentials({
-      id: "dev-login",
-      name: "Dev Login",
-      credentials: {
-        email: { label: "Email", type: "email" },
-      },
-      async authorize(credentials) {
-        const email = String(credentials?.email ?? "dev@limeforge.local");
-        return {
-          id: `local-${email}`,
-          email,
-          name: email.split("@")[0] ?? "Creator",
-        };
-      },
-    }),
+        ]
+      : []),
   ],
   callbacks: {
     async jwt({ token, user, account }) {
