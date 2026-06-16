@@ -46,7 +46,7 @@ export default function AppShell({ projectId }: { projectId?: string }) {
   }
 
   return (
-    <div className="mesh-bg flex h-full min-h-0 overflow-hidden bg-bg-primary">
+    <div className="flex h-full min-h-0 overflow-hidden bg-bg-primary">
       <AppSidebar
         projects={projects}
         activeProjectId={project.id}
@@ -58,8 +58,9 @@ export default function AppShell({ projectId }: { projectId?: string }) {
         }
       />
 
-      <div className="grid h-full min-h-0 min-w-0 flex-1 grid-cols-1 md:grid-cols-2">
-        <div className="flex min-h-0 min-w-0 flex-col overflow-hidden border-white/[0.06] md:border-r">
+      {/* flex row — each column exactly 50% height on screen, never grows with content */}
+      <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col md:flex-row">
+        <div className="flex h-[50%] min-h-0 min-w-0 flex-col overflow-hidden border-white/[0.06] md:h-full md:flex-1 md:border-r">
           <ChatPanel
             key={project.id}
             project={project}
@@ -73,7 +74,7 @@ export default function AppShell({ projectId }: { projectId?: string }) {
           />
         </div>
 
-        <div className="flex min-h-0 min-w-0 flex-col overflow-hidden">
+        <div className="flex h-[50%] min-h-0 min-w-0 flex-col overflow-hidden md:h-full md:flex-1">
           <OutputPanel
             project={project}
             onSaveFile={async (content) => {

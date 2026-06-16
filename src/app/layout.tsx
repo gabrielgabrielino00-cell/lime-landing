@@ -35,7 +35,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrains.variable} h-full`}
+      className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrains.variable}`}
     >
       <body className="min-h-full bg-bg-primary text-text-primary antialiased">
         <SessionProvider>{children}</SessionProvider>
