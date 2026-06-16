@@ -1,58 +1,84 @@
 "use client";
 
 import Link from "next/link";
-import { Play } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight, Play, Sparkles } from "lucide-react";
 import Button from "@/components/ui/Button";
 
 export default function Hero() {
   return (
     <section
       id="product"
-      className="relative min-h-[calc(100vh-4rem)] overflow-hidden px-4 pb-20 pt-16 md:px-8"
+      className="relative min-h-[calc(100vh-4rem)] overflow-hidden px-4 pb-24 pt-20 md:px-8"
     >
+      <div className="mesh-bg pointer-events-none absolute inset-0" />
       <div
-        className="pointer-events-none absolute inset-0"
+        className="pointer-events-none absolute inset-0 opacity-30"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 50% 40%, var(--glow) 0%, transparent 55%), radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px)",
-          backgroundSize: "100% 100%, 24px 24px",
+            "radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
         }}
       />
 
-      <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2">
-        <div>
-          <p className="mb-4 font-mono text-xs uppercase tracking-widest text-accent">
+      <div className="relative mx-auto grid max-w-6xl items-center gap-16 lg:grid-cols-2">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-bg-surface/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-accent">
+            <Sparkles className="h-3 w-3" />
             Roblox Studio · AI workspace
-          </p>
-          <h1 className="font-display text-4xl font-bold uppercase leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+          </div>
+          <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
             Build Luau
             <br />
-            faster than you think.
+            <span className="text-gradient">at lightspeed.</span>
           </h1>
-          <p className="mt-6 max-w-lg text-lg text-text-muted">
-            LimeForge turns prompts into production scripts and syncs them to
-            your open Roblox place — multi-model AI, chat, versioning.
+          <p className="mt-6 max-w-lg text-lg leading-relaxed text-text-muted">
+            LimeForge turns prompts into production Luau — multi-model AI, chat,
+            versioning, and one-click sync to your open Roblox place.
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-4">
+          <div className="mt-10 flex flex-wrap items-center gap-4">
             <Link href="/app">
-              <Button glow>Start free</Button>
+              <Button glow className="gap-2 px-6 py-3">
+                Start free
+                <ArrowRight className="h-4 w-4" />
+              </Button>
             </Link>
-            <Link href="/app">
-              <Button variant="ghost">
+            <Link href="/login">
+              <Button variant="ghost" className="gap-2 px-6 py-3">
                 <Play className="h-4 w-4 fill-current" />
-                Open demo workspace
+                Open workspace
               </Button>
             </Link>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="rounded-xl border border-bg-elevated bg-bg-secondary p-3 shadow-2xl">
-          <div className="grid grid-cols-3 gap-2 text-center font-mono text-[10px] text-text-muted">
-            <span className="rounded bg-bg-surface py-2">Chat</span>
-            <span className="rounded bg-accent-dim py-2 text-accent">Model ▾</span>
-            <span className="rounded bg-bg-surface py-2">Luau out</span>
-          </div>
-          <pre className="mt-3 max-h-64 overflow-auto rounded-lg border border-bg-elevated bg-bg-primary p-4 font-mono text-[11px] leading-relaxed text-success">
+        <motion.div
+          initial={{ opacity: 0, y: 32 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.15 }}
+          className="animate-float"
+        >
+          <div className="glass-card overflow-hidden p-1">
+            <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-3">
+              <span className="h-2.5 w-2.5 rounded-full bg-error/80" />
+              <span className="h-2.5 w-2.5 rounded-full bg-warning/80" />
+              <span className="h-2.5 w-2.5 rounded-full bg-success/80" />
+              <span className="ml-2 font-mono text-[10px] text-text-muted">
+                workspace · Main.server.lua
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 p-3 text-center font-mono text-[10px] text-text-muted">
+              <span className="rounded-lg bg-bg-surface/80 py-2">Chat</span>
+              <span className="rounded-lg bg-accent-dim py-2 text-accent">
+                Claude ▾
+              </span>
+              <span className="rounded-lg bg-bg-surface/80 py-2">Output</span>
+            </div>
+            <pre className="mx-3 mb-3 max-h-72 overflow-auto rounded-xl border border-white/[0.06] bg-bg-primary p-4 font-mono text-[11px] leading-relaxed text-success">
 {`-- synced to ServerScriptService
 local DataStore = game:GetService("DataStoreService")
 local store = DataStore:GetDataStore("DailyRewards_v1")
@@ -60,8 +86,9 @@ local store = DataStore:GetDataStore("DailyRewards_v1")
 local function claimReward(player)
   -- generated by claude-sonnet-4-6
 end`}
-          </pre>
-        </div>
+            </pre>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

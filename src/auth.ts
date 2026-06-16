@@ -2,25 +2,29 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
+import { getOAuthProviders } from "@/lib/oauth";
+
+const oauth = getOAuthProviders();
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   providers: [
-    ...(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET
+    ...(oauth.google
       ? [
           Google({
-            clientId: process.env.AUTH_GOOGLE_ID,
-            clientSecret: process.env.AUTH_GOOGLE_SECRET,
+            clientId: process.env.AUTH_GOOGLE_ID!,
+            clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+            authorization: { params: { prompt: "select_account" } },
           }),
         ]
       : []),
-    ...(process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET
+    ...(oauth.github
       ? [
           GitHub({
-            clientId: process.env.AUTH_GITHUB_ID,
-            clientSecret: process.env.AUTH_GITHUB_SECRET,
+            clientId: process.env.AUTH_GITHUB_ID!,
+            clientSecret: process.env.AUTH_GITHUB_SECRET!,
           }),
         ]
       : []),
@@ -35,23 +39,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return {
           id: `local-${email}`,
           email,
-          name: "Creator",
+          name: email.split("@")[0] ?? "Creator",
         };
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
-        token.id = user.id ?? `local-${user.email}`;
-        token.plan = "free";
+        if (account?.provider && account.provider !== "credentials") {
+          token.id = `${account.provider}-${account.providerAccountId ?? user.id}`;
+        } else {
+          token.id = user.id ?? `local-${user.email}`;
+        }
+        token.email = user.email;
+        token.name = user.name;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        (session.user as { plan?: string }).plan = (token.plan as string) ?? "free";
+        session.user.email = (token.email as string) ?? session.user.email;
+        session.user.name = (token.name as string) ?? session.user.name;
       }
       return session;
     },

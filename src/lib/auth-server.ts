@@ -33,8 +33,13 @@ export async function checkGenerationAllowed(
       code: "RATE_LIMIT",
     };
   }
-  if (profile.plan === "free" && modelId !== "claude-sonnet-4-6") {
-    return { ok: false as const, error: "Free plan only supports Claude Sonnet.", code: "MODEL_LOCKED" };
+  const freeModels = new Set<ModelId>(["claude-sonnet-4-6", "groq-llama"]);
+  if (profile.plan === "free" && !freeModels.has(modelId)) {
+    return {
+      ok: false as const,
+      error: "Free plan supports Claude Sonnet and Groq Llama only.",
+      code: "MODEL_LOCKED",
+    };
   }
   return { ok: true as const };
 }

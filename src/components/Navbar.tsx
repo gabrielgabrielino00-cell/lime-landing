@@ -19,14 +19,17 @@ export default function Navbar() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 h-16 transition-colors duration-300",
+        "sticky top-0 z-50 h-16 transition-all duration-300",
         scrolled
-          ? "border-b border-bg-elevated/80 bg-bg-secondary/80 backdrop-blur-md"
+          ? "border-b border-white/[0.06] bg-bg-primary/80 backdrop-blur-xl"
           : "bg-transparent",
       )}
     >
       <div className="mx-auto flex h-full max-w-6xl items-center justify-between gap-4 px-4 md:px-8">
-        <Link href="/" className="font-display text-lg font-bold tracking-tight text-accent">
+        <Link
+          href="/"
+          className="font-display text-lg font-bold tracking-tight text-gradient"
+        >
           {brand.name}
         </Link>
 

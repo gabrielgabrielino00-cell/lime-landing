@@ -3,9 +3,15 @@ export type ModelId =
   | "claude-opus-4-6"
   | "gpt-4o"
   | "gemini-1.5-pro"
+  | "groq-llama"
   | "ollama-local";
 
-export type ModelProvider = "anthropic" | "openai" | "google" | "local";
+export type ModelProvider =
+  | "anthropic"
+  | "openai"
+  | "google"
+  | "groq"
+  | "local";
 
 export interface AIModel {
   id: ModelId;
@@ -63,6 +69,17 @@ export const AI_MODELS: AIModel[] = [
     requiresPro: true,
     latencyMs: 1500,
     description: "Huge context for full game folders.",
+  },
+  {
+    id: "groq-llama",
+    name: "Llama 3.3 70B (Groq)",
+    provider: "groq",
+    tags: ["FREE TIER", "FAST"],
+    maxTokens: 32_000,
+    costPer1kTokens: 0,
+    requiresPro: false,
+    latencyMs: 400,
+    description: "Free & fast via Groq — great default without Anthropic keys.",
   },
   {
     id: "ollama-local",

@@ -3,10 +3,11 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { Loader2, RotateCcw, Send } from "lucide-react";
+import { Loader2, RotateCcw, Send, Sparkles } from "lucide-react";
 import ModelSwitcher from "@/components/app/ModelSwitcher";
 import type { LocalProfile } from "@/lib/local-db";
 import type { LocalProject } from "@/lib/local-db";
+import { consumeSSEStream } from "@/lib/sse";
 import { cn } from "@/lib/cn";
 import type { ModelId } from "@/types/models";
 
@@ -26,8 +27,15 @@ export default function ChatPanel({
   const [streaming, setStreaming] = useState(false);
   const [streamText, setStreamText] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [aiMode, setAiMode] = useState<"live" | "demo">("demo");
   const bottomRef = useRef<HTMLDivElement>(null);
   const quickPromptRan = useRef(false);
+
+  useEffect(() => {
+    void fetch("/api/ai/status")
+      .then((r) => r.json())
+      .then((d: { mode?: "live" | "demo" }) => setAiMode(d.mode ?? "demo"));
+  }, []);
 
   async function runGeneration(prompt: string) {
     if (!prompt.trim() || streaming) return;
@@ -53,26 +61,11 @@ export default function ChatPanel({
       }
 
       const reader = res.body?.getReader();
-      const decoder = new TextDecoder();
       if (!reader) throw new Error("No stream.");
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value);
-        for (const line of chunk.split("\n")) {
-          if (!line.startsWith("data: ")) continue;
-          const payload = line.slice(6);
-          if (payload === "[DONE]") continue;
-          try {
-            const parsed = JSON.parse(payload) as { text?: string; error?: string };
-            if (parsed.error) throw new Error(parsed.error);
-            if (parsed.text) setStreamText((t) => t + parsed.text);
-          } catch {
-            /* skip */
-          }
-        }
-      }
+      await consumeSSEStream(reader, (text) => {
+        setStreamText((t) => t + text);
+      });
 
       onComplete();
     } catch (err) {
@@ -98,9 +91,30 @@ export default function ChatPanel({
     Math.ceil(streamText.length / 4),
   );
 
+  const suggestions = [
+    "Create a coin leaderstat system for my obby",
+    "Add a daily reward with DataStore",
+    "Build a shop GUI with purchase buttons",
+  ];
+
   return (
-    <div className="flex h-full flex-col border-x border-bg-elevated bg-bg-primary">
-      <div className="border-b border-bg-elevated p-3">
+    <div className="flex h-full flex-col bg-bg-primary/80">
+      <div className="border-b border-white/[0.06] p-4">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+            AI Chat
+          </p>
+          <span
+            className={cn(
+              "rounded-full px-2 py-0.5 font-mono text-[9px] uppercase",
+              aiMode === "live"
+                ? "bg-success/15 text-success"
+                : "bg-warning/15 text-warning",
+            )}
+          >
+            {aiMode === "live" ? "Live AI" : "Demo mode"}
+          </span>
+        </div>
         <ModelSwitcher
           selectedModelId={selectedModelId}
           plan={profile.plan}
@@ -109,40 +123,67 @@ export default function ChatPanel({
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto p-4">
-        {project.messages.length === 0 && (
-          <p className="text-sm text-text-muted">
-            Describe a Roblox feature — LimeForge generates Luau and syncs to
-            Studio.
-          </p>
+        {project.messages.length === 0 && !streaming && (
+          <div className="rounded-2xl border border-white/[0.06] bg-bg-secondary/60 p-5">
+            <div className="flex items-center gap-2 text-accent">
+              <Sparkles className="h-4 w-4" />
+              <p className="text-sm font-medium">What should we build?</p>
+            </div>
+            <p className="mt-2 text-sm text-text-muted">
+              Describe a Roblox feature — LimeForge writes Luau and syncs to
+              Studio.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {suggestions.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => void runGeneration(s)}
+                  className="rounded-full border border-white/[0.08] bg-bg-surface/80 px-3 py-1.5 text-xs text-text-muted transition hover:border-accent-border hover:text-text-primary"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
         )}
 
         {project.messages.map((msg) => (
           <div
             key={msg.id}
             className={cn(
-              "rounded-lg border px-3 py-2 text-sm",
+              "rounded-2xl border px-4 py-3 text-sm",
               msg.role === "user"
-                ? "border-bg-elevated bg-bg-surface"
-                : "border-accent-border/40 bg-bg-secondary",
+                ? "ml-8 border-white/[0.06] bg-bg-surface/80"
+                : "mr-4 border-accent-border/30 bg-bg-secondary/80",
             )}
           >
-            <p className="mb-1 font-mono text-[10px] uppercase text-text-muted">
-              {msg.role === "user" ? "You" : msg.modelId ?? "AI"}
+            <p className="mb-2 font-mono text-[10px] uppercase tracking-wider text-text-muted">
+              {msg.role === "user" ? "You" : (msg.modelId ?? "AI")}
             </p>
-            <div className="prose prose-invert prose-sm max-w-none">
+            <div className="prose-chat">
               <ReactMarkdown>{msg.content}</ReactMarkdown>
             </div>
           </div>
         ))}
 
-        {streaming && streamText && (
-          <div className="rounded-lg border border-accent-border/40 bg-bg-secondary px-3 py-2 text-sm">
-            <p className="mb-1 font-mono text-[10px] uppercase text-accent">
-              Streaming…
+        {streaming && (
+          <div className="mr-4 rounded-2xl border border-accent-border/40 bg-bg-secondary/80 px-4 py-3 text-sm">
+            <p className="mb-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-accent">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Generating…
             </p>
-            <div className="prose prose-invert prose-sm max-w-none">
-              <ReactMarkdown>{streamText}</ReactMarkdown>
-            </div>
+            {streamText ? (
+              <div className="prose-chat">
+                <ReactMarkdown>{streamText}</ReactMarkdown>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="h-3 w-3/4 animate-pulse rounded bg-white/10" />
+                <div className="h-3 w-1/2 animate-pulse rounded bg-white/10" />
+                <div className="h-3 w-2/3 animate-pulse rounded bg-white/10" />
+              </div>
+            )}
           </div>
         )}
 
@@ -150,13 +191,13 @@ export default function ChatPanel({
       </div>
 
       {error && (
-        <div className="mx-4 mb-2 rounded-md border border-error/40 bg-error/10 px-3 py-2 text-sm text-error">
+        <div className="mx-4 mb-2 rounded-xl border border-error/40 bg-error/10 px-4 py-3 text-sm text-error">
           {error}
         </div>
       )}
 
-      <div className="border-t border-bg-elevated p-3">
-        <div className="flex gap-2">
+      <div className="border-t border-white/[0.06] p-4">
+        <div className="flex gap-3">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -167,9 +208,9 @@ export default function ChatPanel({
                 setInput("");
               }
             }}
-            placeholder="Create a coin leaderstat system for my obby…"
+            placeholder="Create a round-based lobby system…"
             rows={2}
-            className="flex-1 resize-none rounded-md border border-bg-elevated bg-bg-surface px-3 py-2 text-sm placeholder:text-text-faint focus:border-accent-border focus:outline-none"
+            className="flex-1 resize-none rounded-xl border border-white/[0.08] bg-bg-surface/90 px-4 py-3 text-sm placeholder:text-text-faint focus:border-accent-border focus:outline-none focus:ring-1 focus:ring-accent-border/50"
           />
           <button
             type="button"
@@ -178,7 +219,7 @@ export default function ChatPanel({
               void runGeneration(input);
               setInput("");
             }}
-            className="flex h-10 w-10 items-center justify-center rounded-md bg-accent text-bg-primary hover:bg-accent-soft disabled:opacity-40"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent text-bg-primary shadow-[0_0_24px_var(--glow)] transition hover:bg-accent-soft disabled:opacity-40"
           >
             {streaming ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -187,7 +228,7 @@ export default function ChatPanel({
             )}
           </button>
         </div>
-        <div className="mt-2 flex justify-between font-mono text-[10px] text-text-muted">
+        <div className="mt-3 flex justify-between font-mono text-[10px] text-text-muted">
           <span>
             {profile.requestsUsed}/{profile.requestsLimit} requests
           </span>

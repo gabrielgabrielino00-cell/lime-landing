@@ -16,11 +16,11 @@ export default function Button({
     <button
       type="button"
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium transition-transform duration-200 hover:scale-[1.02]",
+        "inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-all duration-200",
         variant === "primary" &&
-          "bg-accent font-semibold text-bg-primary hover:bg-accent-soft",
+          "bg-accent font-semibold text-bg-primary hover:bg-accent-soft hover:shadow-[0_0_24px_var(--glow)]",
         variant === "ghost" &&
-          "border border-bg-surface bg-transparent text-text-primary hover:border-accent/40",
+          "border border-white/[0.1] bg-white/[0.02] text-text-primary hover:border-accent-border/50 hover:bg-white/[0.04]",
         glow && "glow-cta",
         className,
       )}

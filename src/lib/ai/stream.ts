@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { ModelId } from "@/types/models";
-import { hasAnthropic, hasGoogleAI, hasOpenAI } from "@/lib/env";
+import { hasAnthropic, hasGoogleAI, hasGroq, hasOpenAI } from "@/lib/env";
 import { streamMockResponse } from "@/lib/mock-ai";
 import { ROBLOX_SYSTEM_PROMPT } from "@/lib/ai/system-prompt";
 
@@ -10,26 +10,41 @@ export async function* streamAI(
   prompt: string,
   modelId: ModelId,
 ): AsyncGenerator<string> {
+  let usedProvider = false;
+
   try {
     if (modelId.startsWith("claude") && hasAnthropic()) {
       yield* streamAnthropic(prompt, modelId);
+      usedProvider = true;
       return;
     }
     if (modelId === "gpt-4o" && hasOpenAI()) {
       yield* streamOpenAI(prompt);
+      usedProvider = true;
       return;
     }
     if (modelId === "gemini-1.5-pro" && hasGoogleAI()) {
       yield* streamGemini(prompt);
+      usedProvider = true;
+      return;
+    }
+    if (modelId === "groq-llama" && hasGroq()) {
+      yield* streamGroq(prompt);
+      usedProvider = true;
       return;
     }
     if (modelId === "ollama-local") {
       yield* streamOllama(prompt);
+      usedProvider = true;
       return;
     }
   } catch (error) {
     const msg = error instanceof Error ? error.message : "AI provider error";
     yield `**Provider error:** ${msg}\n\nFalling back to demo output:\n\n`;
+  }
+
+  if (!usedProvider) {
+    yield `> *Demo mode* — add API keys in \`.env.local\` for live AI.\n\n`;
   }
 
   yield* streamMockResponse(prompt, modelId);
@@ -39,8 +54,8 @@ async function* streamAnthropic(prompt: string, modelId: ModelId) {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
   const model =
     modelId === "claude-opus-4-6"
-      ? "claude-opus-4-20250514"
-      : "claude-sonnet-4-20250514";
+      ? (process.env.ANTHROPIC_MODEL_OPUS ?? "claude-opus-4-20250514")
+      : (process.env.ANTHROPIC_MODEL_SONNET ?? "claude-sonnet-4-20250514");
 
   const stream = await client.messages.stream({
     model,
@@ -62,7 +77,7 @@ async function* streamAnthropic(prompt: string, modelId: ModelId) {
 async function* streamOpenAI(prompt: string) {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
   const stream = await client.chat.completions.create({
-    model: "gpt-4o",
+    model: process.env.OPENAI_MODEL ?? "gpt-4o",
     stream: true,
     messages: [
       { role: "system", content: ROBLOX_SYSTEM_PROMPT },
@@ -77,16 +92,43 @@ async function* streamOpenAI(prompt: string) {
 }
 
 async function* streamGemini(prompt: string) {
-  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+  const genAI = new GoogleGenerativeAI(
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
+  );
+  const model = genAI.getGenerativeModel({
+    model: process.env.GEMINI_MODEL ?? "gemini-1.5-pro",
+  });
   const result = await model.generateContentStream({
     contents: [
-      { role: "user", parts: [{ text: `${ROBLOX_SYSTEM_PROMPT}\n\n${prompt}` }] },
+      {
+        role: "user",
+        parts: [{ text: `${ROBLOX_SYSTEM_PROMPT}\n\n${prompt}` }],
+      },
     ],
   });
 
   for await (const chunk of result.stream) {
     const text = chunk.text();
+    if (text) yield text;
+  }
+}
+
+async function* streamGroq(prompt: string) {
+  const client = new OpenAI({
+    apiKey: process.env.GROQ_API_KEY!,
+    baseURL: "https://api.groq.com/openai/v1",
+  });
+  const stream = await client.chat.completions.create({
+    model: process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
+    stream: true,
+    messages: [
+      { role: "system", content: ROBLOX_SYSTEM_PROMPT },
+      { role: "user", content: prompt },
+    ],
+  });
+
+  for await (const chunk of stream) {
+    const text = chunk.choices[0]?.delta?.content;
     if (text) yield text;
   }
 }
@@ -97,7 +139,7 @@ async function* streamOllama(prompt: string) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "llama3.2",
+      model: process.env.OLLAMA_MODEL ?? "llama3.2",
       prompt: `${ROBLOX_SYSTEM_PROMPT}\n\n${prompt}`,
       stream: true,
     }),

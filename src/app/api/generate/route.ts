@@ -10,6 +10,7 @@ const VALID = new Set([
   "claude-opus-4-6",
   "gpt-4o",
   "gemini-1.5-pro",
+  "groq-llama",
   "ollama-local",
 ]);
 

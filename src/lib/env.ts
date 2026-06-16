@@ -17,6 +17,10 @@ export function hasGoogleAI() {
   return Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY);
 }
 
+export function hasGroq() {
+  return Boolean(process.env.GROQ_API_KEY);
+}
+
 export function hasStripe() {
   return Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_PRO);
 }

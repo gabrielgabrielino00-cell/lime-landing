@@ -10,6 +10,7 @@ const providerColors: Record<ModelProvider, string> = {
   anthropic: "bg-violet-500/20 text-violet-300",
   openai: "bg-emerald-500/20 text-emerald-300",
   google: "bg-sky-500/20 text-sky-300",
+  groq: "bg-amber-500/20 text-amber-300",
   local: "bg-zinc-500/20 text-zinc-300",
 };
 
@@ -30,7 +31,7 @@ export default function ModelSwitcher({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between rounded-md border border-bg-elevated bg-bg-surface px-3 py-2 text-left text-sm hover:border-accent-border"
+        className="flex w-full items-center justify-between rounded-xl border border-white/[0.08] bg-bg-surface/90 px-3 py-2.5 text-left text-sm transition hover:border-accent-border"
       >
         <span>
           <span className="font-medium">{selected.name}</span>
@@ -42,11 +43,12 @@ export default function ModelSwitcher({
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-bg-elevated bg-bg-secondary shadow-xl">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-xl border border-white/[0.08] bg-bg-secondary/95 shadow-2xl backdrop-blur-xl">
           {AI_MODELS.map((model) => {
+            const freeModels = new Set(["claude-sonnet-4-6", "groq-llama"]);
             const locked =
               (model.requiresPro && plan === "free") ||
-              (plan === "free" && model.id !== "claude-sonnet-4-6");
+              (plan === "free" && !freeModels.has(model.id));
             return (
               <button
                 key={model.id}

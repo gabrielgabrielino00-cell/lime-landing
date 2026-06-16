@@ -13,7 +13,7 @@ export const navLinks = [
 export const stats = {
   creators: "18,000+",
   generations: "2.4M+",
-  models: "5",
+  models: "6",
 };
 
 export const socialBrands = ["Roblox", "Discord", "GitHub", "Studio", "DevForum"];
@@ -23,7 +23,7 @@ export const features = [
     icon: "Zap",
     title: "Multi-model AI",
     description:
-      "Sonnet, Opus, GPT-4o, Gemini, or local Ollama — switch per task without leaving the editor.",
+      "Sonnet, Opus, GPT-4o, Gemini, Groq Llama, or local Ollama — switch per task without leaving the editor.",
   },
   {
     icon: "Shield",

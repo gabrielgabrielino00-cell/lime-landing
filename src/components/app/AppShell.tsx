@@ -44,7 +44,7 @@ export default function AppShell({ projectId }: { projectId?: string }) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-bg-primary">
+    <div className="mesh-bg flex h-screen overflow-hidden bg-bg-primary">
       <AppSidebar
         projects={projects}
         activeProjectId={project.id}

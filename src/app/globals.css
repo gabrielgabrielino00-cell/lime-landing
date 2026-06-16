@@ -1,21 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  --bg-primary: #08080e;
-  --bg-secondary: #0f0f1a;
-  --bg-surface: #16162a;
-  --bg-elevated: #1e1e32;
-  --accent: #c8ff00;
-  --accent-soft: #a8e800;
-  --accent-dim: rgba(200, 255, 0, 0.12);
-  --accent-border: rgba(200, 255, 0, 0.3);
-  --text-primary: #efefef;
-  --text-muted: #5a5a72;
-  --text-faint: #2e2e45;
-  --error: #ff4d4d;
-  --success: #00e5a0;
-  --warning: #ffb800;
-  --glow: rgba(200, 255, 0, 0.15);
+  --bg-primary: #050508;
+  --bg-secondary: #0c0c14;
+  --bg-surface: #12121f;
+  --bg-elevated: #1a1a2e;
+  --accent: #b8f000;
+  --accent-soft: #d4ff4d;
+  --accent-dim: rgba(184, 240, 0, 0.1);
+  --accent-border: rgba(184, 240, 0, 0.35);
+  --text-primary: #f4f4f8;
+  --text-muted: #8b8ba8;
+  --text-faint: #4a4a62;
+  --error: #ff5c6a;
+  --success: #2ee6a8;
+  --warning: #ffc14d;
+  --glow: rgba(184, 240, 0, 0.22);
+  --mesh-1: rgba(184, 240, 0, 0.08);
+  --mesh-2: rgba(99, 102, 241, 0.06);
 }
 
 @theme inline {
@@ -53,18 +55,116 @@ body {
   font-family: var(--font-inter), system-ui, sans-serif;
 }
 
+.mesh-bg {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, var(--mesh-1), transparent 50%),
+    radial-gradient(ellipse 60% 50% at 80% 20%, var(--mesh-2), transparent 45%),
+    radial-gradient(ellipse 50% 40% at 50% 100%, rgba(184, 240, 0, 0.04), transparent 50%);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--accent-soft) 0%, var(--accent) 50%, #9ae600 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.glass-card {
+  border-radius: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(12, 12, 20, 0.75);
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 24px 48px rgba(0, 0, 0, 0.4);
+}
+
+.oauth-btn {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(18, 18, 31, 0.8);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.oauth-btn:hover {
+  border-color: var(--accent-border);
+  background: rgba(26, 26, 46, 0.9);
+}
+
+.prose-chat {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.prose-chat p {
+  margin: 0.5rem 0;
+}
+
+.prose-chat code {
+  border-radius: 0.25rem;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.125rem 0.375rem;
+  font-family: var(--font-jetbrains), monospace;
+  font-size: 0.8em;
+  color: var(--accent-soft);
+}
+
+.prose-chat pre {
+  margin: 0.75rem 0;
+  overflow-x: auto;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--bg-primary);
+  padding: 1rem;
+}
+
+.prose-chat pre code {
+  background: transparent;
+  padding: 0;
+  color: var(--success);
+}
+
+.prose-chat blockquote {
+  margin: 0.5rem 0;
+  border-left: 2px solid var(--accent-border);
+  padding-left: 0.75rem;
+  color: var(--text-muted);
+}
+
 @keyframes accent-pulse {
   0%,
   100% {
     box-shadow: 0 0 20px var(--glow);
   }
   50% {
-    box-shadow: 0 0 36px rgba(200, 255, 0, 0.28);
+    box-shadow: 0 0 40px rgba(184, 240, 0, 0.35);
   }
 }
 
 .glow-cta {
   animation: accent-pulse 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

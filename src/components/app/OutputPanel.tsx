@@ -58,13 +58,13 @@ export default function OutputPanel({
     if (res.ok) {
       alert("Sync queued. Open Roblox Studio and click LimeForge → Sync.");
     } else {
-      alert("Generate an API key in Settings (Pro) for Studio sync.");
+      alert("Sync failed — check API key in Settings.");
     }
   }
 
   return (
-    <div className="flex h-full flex-col bg-bg-secondary">
-      <div className="flex items-center justify-between border-b border-bg-elevated px-3 py-2">
+    <div className="flex h-full flex-col bg-bg-secondary/60">
+      <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
         <div className="flex gap-1">
           {project.files.map((f, i) => (
             <button
@@ -72,10 +72,10 @@ export default function OutputPanel({
               type="button"
               onClick={() => setActiveFile(i)}
               className={cn(
-                "rounded px-2 py-1 font-mono text-xs",
+                "rounded-lg px-3 py-1.5 font-mono text-xs transition",
                 i === activeFile
-                  ? "bg-accent-dim text-accent"
-                  : "text-text-muted hover:text-text-primary",
+                  ? "bg-accent-dim text-accent ring-1 ring-accent-border/30"
+                  : "text-text-muted hover:bg-bg-surface/80",
               )}
             >
               {f.name}
@@ -86,7 +86,7 @@ export default function OutputPanel({
           <button
             type="button"
             onClick={() => setEditable((v) => !v)}
-            className="rounded px-2 py-1 text-xs text-text-muted hover:text-accent"
+            className="rounded-lg px-2.5 py-1.5 text-xs text-text-muted transition hover:bg-bg-surface/80 hover:text-accent"
           >
             {editable ? "Lock" : "Edit"}
           </button>
@@ -104,7 +104,7 @@ export default function OutputPanel({
 
       <div className="min-h-0 flex-1">
         {showDiff && prevVersion ? (
-          <pre className="h-full overflow-auto p-4 font-mono text-xs text-success">
+          <pre className="h-full overflow-auto p-4 font-mono text-xs leading-relaxed text-success">
             {`--- ${prevVersion.label}\n+++ current\n+ ${file.content.split("\n").join("\n+ ")}`}
           </pre>
         ) : (
@@ -118,11 +118,16 @@ export default function OutputPanel({
       </div>
 
       {project.versions.length > 0 && (
-        <div className="max-h-32 overflow-y-auto border-t border-bg-elevated p-3">
-          <p className="mb-2 font-mono text-[10px] uppercase text-text-muted">Versions</p>
-          <ul className="space-y-1">
+        <div className="max-h-36 overflow-y-auto border-t border-white/[0.06] p-4">
+          <p className="mb-2 font-mono text-[10px] uppercase tracking-wider text-text-muted">
+            Versions
+          </p>
+          <ul className="space-y-1.5">
             {project.versions.map((v) => (
-              <li key={v.id} className="font-mono text-[10px] text-text-muted">
+              <li
+                key={v.id}
+                className="rounded-lg border border-white/[0.04] bg-bg-primary/40 px-3 py-2 font-mono text-[10px] text-text-muted"
+              >
                 <span className="text-accent">{v.label}</span> · {v.modelId}
               </li>
             ))}
@@ -150,7 +155,7 @@ function ToolBtn({
       title={label}
       onClick={onClick}
       className={cn(
-        "rounded px-2 py-1 text-xs text-text-muted hover:bg-bg-surface hover:text-text-primary",
+        "rounded-lg px-2.5 py-1.5 text-text-muted transition hover:bg-bg-surface/80 hover:text-text-primary",
         active && "bg-accent-dim text-accent",
       )}
     >
