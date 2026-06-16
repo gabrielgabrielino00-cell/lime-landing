@@ -83,19 +83,28 @@ export async function localGetOrCreateProfile(
   const db = await ensureDb();
   let profile = db.profiles.find((p) => p.id === id);
   if (!profile) {
+    const isLocalDev = id.startsWith("local-");
     profile = {
       id,
       email,
       name,
-      plan: "free",
+      plan: isLocalDev ? "pro" : "free",
       requestsUsed: 0,
       requestsLimit: 9999,
     };
     db.profiles.push(profile);
     await saveDb(db);
-  } else if (profile.requestsLimit < 1000) {
-    profile.requestsLimit = 9999;
-    await saveDb(db);
+  } else {
+    let changed = false;
+    if (profile.requestsLimit < 1000) {
+      profile.requestsLimit = 9999;
+      changed = true;
+    }
+    if (id.startsWith("local-") && profile.plan === "free") {
+      profile.plan = "pro";
+      changed = true;
+    }
+    if (changed) await saveDb(db);
   }
   return profile;
 }

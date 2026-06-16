@@ -43,14 +43,14 @@ export default function Hero() {
           <div className="mt-10 flex flex-wrap items-center gap-4">
             <Link href="/app">
               <Button glow className="gap-2 px-6 py-3">
-                Start free
+                Entra subito
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
-            <Link href="/login">
+            <Link href="/app">
               <Button variant="ghost" className="gap-2 px-6 py-3">
                 <Play className="h-4 w-4 fill-current" />
-                Open workspace
+                Apri workspace
               </Button>
             </Link>
           </div>

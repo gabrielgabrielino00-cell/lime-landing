@@ -37,11 +37,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               email: { label: "Email", type: "email" },
             },
             async authorize(credentials) {
-              const email = String(credentials?.email ?? "dev@limeforge.local");
+              const email = String(
+                credentials?.email ?? "creator@limeforge.local",
+              );
               return {
                 id: `local-${email}`,
                 email,
-                name: email.split("@")[0] ?? "Creator",
+                name: "Gabriel",
               };
             },
           }),
