@@ -1,17 +1,41 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Check } from "lucide-react";
 import { plans } from "@/lib/data";
 import Button from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 
 export default function Pricing() {
+  const router = useRouter();
+  const [loading, setLoading] = useState<string | null>(null);
+
+  async function checkout(planName: string) {
+    const plan = planName.toLowerCase() as "pro" | "team";
+    if (plan !== "pro" && plan !== "team") {
+      router.push("/login");
+      return;
+    }
+    setLoading(planName);
+    const res = await fetch("/api/stripe/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan }),
+    });
+    const data = (await res.json()) as { url?: string };
+    if (data.url) router.push(data.url);
+    setLoading(null);
+  }
+
   return (
-    <section id="pricing" className="border-t border-bg-surface px-4 py-24 md:px-8">
+    <section id="pricing" className="border-t border-bg-elevated px-4 py-24 md:px-8">
       <div className="mx-auto max-w-6xl">
         <h2 className="font-display text-3xl font-bold uppercase tracking-tight md:text-4xl">
           Simple pricing
         </h2>
         <p className="mt-3 text-text-muted">
-          Start free. Upgrade when your flows go viral.
+          Start free. Upgrade when your games go viral.
         </p>
 
         <div className="mt-12 grid gap-6 lg:grid-cols-3">
@@ -22,7 +46,7 @@ export default function Pricing() {
                 "relative rounded-xl border bg-bg-secondary p-6",
                 plan.popular
                   ? "border-accent shadow-[0_0_32px_var(--glow)]"
-                  : "border-bg-surface",
+                  : "border-bg-elevated",
               )}
             >
               {plan.popular && (
@@ -59,8 +83,13 @@ export default function Pricing() {
                 glow={plan.popular}
                 variant={plan.popular ? "primary" : "ghost"}
                 className="mt-8 w-full"
+                onClick={() =>
+                  plan.price === 0
+                    ? router.push("/login")
+                    : void checkout(plan.name)
+                }
               >
-                {plan.cta}
+                {loading === plan.name ? "Loading…" : plan.cta}
               </Button>
             </article>
           ))}

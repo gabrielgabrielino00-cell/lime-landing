@@ -2,16 +2,22 @@
 
 import { useState } from "react";
 import { Copy, Download, GitCompare, RefreshCw } from "lucide-react";
-import { useActiveProject, useAppStore } from "@/lib/store";
+import CodeEditor from "@/components/app/CodeEditor";
+import { getStoredApiKey } from "@/lib/api-key-storage";
+import type { LocalProject } from "@/lib/local-db";
 import { cn } from "@/lib/cn";
 
-export default function OutputPanel() {
-  const project = useActiveProject();
+export default function OutputPanel({
+  project,
+  onSaveFile,
+}: {
+  project: LocalProject;
+  onSaveFile: (content: string) => Promise<void>;
+}) {
   const [activeFile, setActiveFile] = useState(0);
   const [showDiff, setShowDiff] = useState(false);
+  const [editable, setEditable] = useState(false);
   const [copied, setCopied] = useState(false);
-
-  if (!project) return null;
 
   const file = project.files[activeFile];
   const prevVersion = project.versions[1];
@@ -30,6 +36,30 @@ export default function OutputPanel() {
     a.download = file.name;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  async function syncStudio() {
+    const apiKey = getStoredApiKey();
+    if (!apiKey) {
+      alert("Generate an API key in Settings (Pro) for Studio sync.");
+      return;
+    }
+    const res = await fetch("/api/sync/push", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-limeforge-key": apiKey,
+      },
+      body: JSON.stringify({
+        projectId: project.id,
+        files: project.files,
+      }),
+    });
+    if (res.ok) {
+      alert("Sync queued. Open Roblox Studio and click LimeForge → Sync.");
+    } else {
+      alert("Generate an API key in Settings (Pro) for Studio sync.");
+    }
   }
 
   return (
@@ -52,10 +82,17 @@ export default function OutputPanel() {
             </button>
           ))}
         </div>
-        <div className="flex gap-1">
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setEditable((v) => !v)}
+            className="rounded px-2 py-1 text-xs text-text-muted hover:text-accent"
+          >
+            {editable ? "Lock" : "Edit"}
+          </button>
           <ToolBtn icon={Copy} label={copied ? "Copied" : "Copy"} onClick={() => void copyCode()} />
           <ToolBtn icon={Download} label="Download" onClick={downloadFile} />
-          <ToolBtn icon={RefreshCw} label="Sync Studio" onClick={() => alert("Roblox Studio plugin sync (local demo).")} />
+          <ToolBtn icon={RefreshCw} label="Sync" onClick={() => void syncStudio()} />
           <ToolBtn
             icon={GitCompare}
             label="Diff"
@@ -65,48 +102,28 @@ export default function OutputPanel() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-3">
+      <div className="min-h-0 flex-1">
         {showDiff && prevVersion ? (
-          <div className="space-y-2 font-mono text-xs">
-            <p className="text-text-muted">Diff vs {prevVersion.label}</p>
-            <pre className="rounded-md border border-bg-elevated bg-bg-primary p-3 text-success">
-              {`+ ${file.content.split("\n").slice(0, 3).join("\n+ ")}`}
-            </pre>
-          </div>
-        ) : (
-          <pre className="h-full rounded-md border border-bg-elevated bg-bg-primary p-4 font-mono text-xs leading-relaxed text-text-primary">
-            <code>{file.content}</code>
+          <pre className="h-full overflow-auto p-4 font-mono text-xs text-success">
+            {`--- ${prevVersion.label}\n+++ current\n+ ${file.content.split("\n").join("\n+ ")}`}
           </pre>
+        ) : (
+          <CodeEditor
+            value={file.content}
+            readOnly={!editable}
+            language="lua"
+            onChange={(v) => void onSaveFile(v)}
+          />
         )}
       </div>
 
       {project.versions.length > 0 && (
-        <div className="max-h-36 overflow-y-auto border-t border-bg-elevated p-3">
+        <div className="max-h-32 overflow-y-auto border-t border-bg-elevated p-3">
           <p className="mb-2 font-mono text-[10px] uppercase text-text-muted">Versions</p>
           <ul className="space-y-1">
             {project.versions.map((v) => (
-              <li key={v.id}>
-                <button
-                  type="button"
-                  className="w-full rounded px-2 py-1 text-left text-xs text-text-muted hover:bg-bg-surface hover:text-text-primary"
-                  onClick={() =>
-                    useAppStore.setState((s) => ({
-                      projects: s.projects.map((p) =>
-                        p.id === project.id
-                          ? {
-                              ...p,
-                              files: p.files.map((f, i) =>
-                                i === 0 ? { ...f, content: v.outputSnapshot } : f,
-                              ),
-                            }
-                          : p,
-                      ),
-                    }))
-                  }
-                >
-                  <span className="text-accent">{v.label}</span> · {v.modelId} ·{" "}
-                  {new Date(v.createdAt).toLocaleString()}
-                </button>
+              <li key={v.id} className="font-mono text-[10px] text-text-muted">
+                <span className="text-accent">{v.label}</span> · {v.modelId}
               </li>
             ))}
           </ul>
@@ -133,12 +150,11 @@ function ToolBtn({
       title={label}
       onClick={onClick}
       className={cn(
-        "flex items-center gap-1 rounded px-2 py-1 text-xs text-text-muted hover:bg-bg-surface hover:text-text-primary",
+        "rounded px-2 py-1 text-xs text-text-muted hover:bg-bg-surface hover:text-text-primary",
         active && "bg-accent-dim text-accent",
       )}
     >
       <Icon className="h-3.5 w-3.5" />
-      <span className="hidden xl:inline">{label}</span>
     </button>
   );
 }

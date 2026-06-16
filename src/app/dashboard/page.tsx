@@ -2,12 +2,39 @@
 
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { useAppStore } from "@/lib/store";
+import { useEffect, useState } from "react";
+import type { LocalProfile, LocalProject } from "@/lib/local-db";
 
 export default function DashboardPage() {
-  const user = useAppStore((s) => s.user);
-  const projects = useAppStore((s) => s.projects);
-  const createProject = useAppStore((s) => s.createProject);
+  const [profile, setProfile] = useState<LocalProfile | null>(null);
+  const [projects, setProjects] = useState<LocalProject[]>([]);
+
+  useEffect(() => {
+    void fetch("/api/user/me")
+      .then((r) => r.json())
+      .then((d: { profile: LocalProfile }) => setProfile(d.profile));
+    void fetch("/api/projects")
+      .then((r) => r.json())
+      .then((d: { projects: LocalProject[] }) => setProjects(d.projects));
+  }, []);
+
+  async function quickStart(prompt: string) {
+    const res = await fetch("/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "Quick session" }),
+    });
+    const data = (await res.json()) as { project: LocalProject };
+    window.location.href = `/app/${data.project.id}?q=${encodeURIComponent(prompt)}`;
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-text-muted">
+        Loading…
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-bg-primary px-4 py-8 md:px-8">
@@ -15,7 +42,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="font-display text-3xl font-bold">Dashboard</h1>
-            <p className="text-text-muted">Welcome back, {user.name}</p>
+            <p className="text-text-muted">Welcome back, {profile.name}</p>
           </div>
           <Link href="/app" className="text-sm text-accent hover:underline">
             Open workspace →
@@ -24,16 +51,18 @@ export default function DashboardPage() {
 
         <div className="mt-8 grid gap-4 sm:grid-cols-4">
           {[
-            ["Requests", `${user.requestsUsed}/${user.requestsLimit}`],
+            ["Requests", `${profile.requestsUsed}/${profile.requestsLimit}`],
             ["Projects", String(projects.length)],
             ["Top model", "claude-sonnet-4-6"],
-            ["Plan", user.plan],
+            ["Plan", profile.plan],
           ].map(([label, value]) => (
             <div
               key={label}
               className="rounded-lg border border-bg-elevated bg-bg-secondary p-4"
             >
-              <p className="font-mono text-[10px] uppercase text-text-muted">{label}</p>
+              <p className="font-mono text-[10px] uppercase text-text-muted">
+                {label}
+              </p>
               <p className="mt-1 font-display text-xl font-bold">{value}</p>
             </div>
           ))}
@@ -49,9 +78,7 @@ export default function DashboardPage() {
             onSubmit={(e) => {
               e.preventDefault();
               const fd = new FormData(e.currentTarget);
-              const prompt = String(fd.get("prompt") ?? "");
-              const id = createProject("Quick session");
-              window.location.href = `/app/${id}?q=${encodeURIComponent(prompt)}`;
+              void quickStart(String(fd.get("prompt") ?? ""));
             }}
           >
             <input
@@ -74,12 +101,10 @@ export default function DashboardPage() {
             <Link
               key={p.id}
               href={`/app/${p.id}`}
-              className="rounded-lg border border-bg-elevated bg-bg-secondary p-4 transition hover:border-accent-border"
+              className="rounded-lg border border-bg-elevated bg-bg-secondary p-4 hover:border-accent-border"
             >
               <p className="font-medium">{p.name}</p>
-              <p className="mt-1 font-mono text-[10px] text-text-muted">
-                {p.modelId} · {new Date(p.updatedAt).toLocaleDateString()}
-              </p>
+              <p className="font-mono text-[10px] text-text-muted">{p.modelId}</p>
               <pre className="mt-3 max-h-20 overflow-hidden rounded bg-bg-primary p-2 font-mono text-[10px] text-text-muted">
                 {p.files[0]?.content.slice(0, 120) || "No output yet"}
               </pre>

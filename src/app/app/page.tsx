@@ -1,22 +1,15 @@
-"use client";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { localCreateProject, localListProjects } from "@/lib/local-db";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAppStore } from "@/lib/store";
+export default async function AppRedirectPage() {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login");
 
-export default function AppRedirectPage() {
-  const router = useRouter();
-  const projects = useAppStore((s) => s.projects);
-  const createProject = useAppStore((s) => s.createProject);
+  const projects = await localListProjects(session.user.id);
+  const id =
+    projects[0]?.id ??
+    (await localCreateProject(session.user.id, "My Roblox Project", "claude-sonnet-4-6")).id;
 
-  useEffect(() => {
-    const id = projects[0]?.id ?? createProject();
-    router.replace(`/app/${id}`);
-  }, [projects, createProject, router]);
-
-  return (
-    <div className="flex h-screen items-center justify-center bg-bg-primary text-text-muted">
-      Loading workspace…
-    </div>
-  );
+  redirect(`/app/${id}`);
 }

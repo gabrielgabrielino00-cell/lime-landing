@@ -1,40 +1,38 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Loader2, RotateCcw, Send } from "lucide-react";
 import ModelSwitcher from "@/components/app/ModelSwitcher";
-import { extractCodeBlock } from "@/lib/mock-ai";
-import { useActiveProject, useAppStore } from "@/lib/store";
+import type { LocalProfile } from "@/lib/local-db";
+import type { LocalProject } from "@/lib/local-db";
 import { cn } from "@/lib/cn";
+import type { ModelId } from "@/types/models";
 
-export default function ChatPanel() {
-  const project = useActiveProject();
+export default function ChatPanel({
+  project,
+  profile,
+  onComplete,
+}: {
+  project: LocalProject;
+  profile: LocalProfile;
+  onComplete: () => void;
+}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [selectedModelId, setSelectedModelId] = useState<ModelId>(project.modelId);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [streamText, setStreamText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
-
-  const selectedModelId = useAppStore((s) => s.selectedModelId);
-  const user = useAppStore((s) => s.user);
-  const addMessage = useAppStore((s) => s.addMessage);
-  const setOutput = useAppStore((s) => s.setOutput);
-  const incrementRequests = useAppStore((s) => s.incrementRequests);
-
-  if (!project) return null;
+  const quickPromptRan = useRef(false);
 
   async function runGeneration(prompt: string) {
-    if (!project || !prompt.trim() || streaming) return;
+    if (!prompt.trim() || streaming) return;
 
     setError(null);
-    if (!incrementRequests()) {
-      setError("Monthly request limit reached. Upgrade to Pro.");
-      return;
-    }
-
-    addMessage(project.id, "user", prompt);
-    setInput("");
     setStreaming(true);
     setStreamText("");
 
@@ -45,7 +43,7 @@ export default function ChatPanel() {
         body: JSON.stringify({
           prompt,
           modelId: selectedModelId,
-          plan: user.plan,
+          projectId: project.id,
         }),
       });
 
@@ -56,14 +54,11 @@ export default function ChatPanel() {
 
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
-      let full = "";
-
-      if (!reader) throw new Error("No stream available.");
+      if (!reader) throw new Error("No stream.");
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
         const chunk = decoder.decode(value);
         for (const line of chunk.split("\n")) {
           if (!line.startsWith("data: ")) continue;
@@ -72,19 +67,14 @@ export default function ChatPanel() {
           try {
             const parsed = JSON.parse(payload) as { text?: string; error?: string };
             if (parsed.error) throw new Error(parsed.error);
-            if (parsed.text) {
-              full += parsed.text;
-              setStreamText(full);
-            }
+            if (parsed.text) setStreamText((t) => t + parsed.text);
           } catch {
-            /* skip malformed */
+            /* skip */
           }
         }
       }
 
-      addMessage(project.id, "assistant", full, selectedModelId);
-      const code = extractCodeBlock(full);
-      setOutput(project.id, full, code, prompt, selectedModelId);
+      onComplete();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error.");
     } finally {
@@ -94,14 +84,28 @@ export default function ChatPanel() {
     }
   }
 
-  const tokenEstimate = [...project.messages, { content: streamText }]
-    .map((m) => Math.ceil(("content" in m ? m.content : "").length / 4))
-    .reduce((a, b) => a + b, 0);
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (!q || quickPromptRan.current || project.messages.length > 0) return;
+    quickPromptRan.current = true;
+    router.replace(`/app/${project.id}`);
+    void runGeneration(q);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once for dashboard quick prompt
+  }, [searchParams, project.id, project.messages.length]);
+
+  const tokenEstimate = project.messages.reduce(
+    (acc, m) => acc + Math.ceil(m.content.length / 4),
+    Math.ceil(streamText.length / 4),
+  );
 
   return (
     <div className="flex h-full flex-col border-x border-bg-elevated bg-bg-primary">
       <div className="border-b border-bg-elevated p-3">
-        <ModelSwitcher />
+        <ModelSwitcher
+          selectedModelId={selectedModelId}
+          plan={profile.plan}
+          onSelect={setSelectedModelId}
+        />
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto p-4">
@@ -125,7 +129,7 @@ export default function ChatPanel() {
             <p className="mb-1 font-mono text-[10px] uppercase text-text-muted">
               {msg.role === "user" ? "You" : msg.modelId ?? "AI"}
             </p>
-            <div className="prose prose-invert prose-sm max-w-none text-text-primary">
+            <div className="prose prose-invert prose-sm max-w-none">
               <ReactMarkdown>{msg.content}</ReactMarkdown>
             </div>
           </div>
@@ -160,17 +164,21 @@ export default function ChatPanel() {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 void runGeneration(input);
+                setInput("");
               }
             }}
             placeholder="Create a coin leaderstat system for my obby…"
             rows={2}
-            className="flex-1 resize-none rounded-md border border-bg-elevated bg-bg-surface px-3 py-2 text-sm text-text-primary placeholder:text-text-faint focus:border-accent-border focus:outline-none"
+            className="flex-1 resize-none rounded-md border border-bg-elevated bg-bg-surface px-3 py-2 text-sm placeholder:text-text-faint focus:border-accent-border focus:outline-none"
           />
           <button
             type="button"
             disabled={streaming || !input.trim()}
-            onClick={() => void runGeneration(input)}
-            className="flex h-10 w-10 items-center justify-center rounded-md bg-accent text-bg-primary transition hover:bg-accent-soft disabled:opacity-40"
+            onClick={() => {
+              void runGeneration(input);
+              setInput("");
+            }}
+            className="flex h-10 w-10 items-center justify-center rounded-md bg-accent text-bg-primary hover:bg-accent-soft disabled:opacity-40"
           >
             {streaming ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -179,9 +187,9 @@ export default function ChatPanel() {
             )}
           </button>
         </div>
-        <div className="mt-2 flex items-center justify-between font-mono text-[10px] text-text-muted">
+        <div className="mt-2 flex justify-between font-mono text-[10px] text-text-muted">
           <span>
-            {user.requestsUsed}/{user.requestsLimit} requests
+            {profile.requestsUsed}/{profile.requestsLimit} requests
           </span>
           <span>~{tokenEstimate} tokens</span>
         </div>
@@ -190,7 +198,9 @@ export default function ChatPanel() {
             type="button"
             className="mt-2 flex items-center gap-1 text-xs text-text-muted hover:text-accent"
             onClick={() => {
-              const lastUser = [...project.messages].reverse().find((m) => m.role === "user");
+              const lastUser = [...project.messages]
+                .reverse()
+                .find((m) => m.role === "user");
               if (lastUser) void runGeneration(lastUser.content);
             }}
           >
