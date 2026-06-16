@@ -53,7 +53,7 @@ export default function Navbar() {
           </Link>
           <Link href="/app">
             <Button glow className="px-4 py-2">
-              Entra
+              Start free
             </Button>
           </Link>
         </div>

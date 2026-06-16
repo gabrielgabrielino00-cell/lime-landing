@@ -11,6 +11,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   providers: [
+    ...(oauth.github
+      ? [
+          GitHub({
+            clientId: process.env.AUTH_GITHUB_ID!,
+            clientSecret: process.env.AUTH_GITHUB_SECRET!,
+          }),
+        ]
+      : []),
     ...(oauth.google
       ? [
           Google({
@@ -20,35 +28,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }),
         ]
       : []),
-    ...(oauth.github
-      ? [
-          GitHub({
-            clientId: process.env.AUTH_GITHUB_ID!,
-            clientSecret: process.env.AUTH_GITHUB_SECRET!,
-          }),
-        ]
-      : []),
-    ...(process.env.NODE_ENV === "development"
-      ? [
-          Credentials({
-            id: "dev-login",
-            name: "Dev Login",
-            credentials: {
-              email: { label: "Email", type: "email" },
-            },
-            async authorize(credentials) {
-              const email = String(
-                credentials?.email ?? "creator@limeforge.local",
-              );
-              return {
-                id: `local-${email}`,
-                email,
-                name: "Gabriel",
-              };
-            },
-          }),
-        ]
-      : []),
+    Credentials({
+      id: "dev-login",
+      name: "Dev Login",
+      credentials: {
+        email: { label: "Email", type: "email" },
+      },
+      async authorize(credentials) {
+        const email = String(credentials?.email ?? "dev@limeforge.local");
+        return {
+          id: `local-${email}`,
+          email,
+          name: "Creator",
+        };
+      },
+    }),
   ],
   callbacks: {
     async jwt({ token, user, account }) {
