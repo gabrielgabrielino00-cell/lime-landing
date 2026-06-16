@@ -21,9 +21,9 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Volt — Build AI workflows faster than you think",
+  title: "LimeForge — AI copilot for Roblox Studio",
   description:
-    "Dark, fast, and built for creators. Ship AI automations without the chaos.",
+    "Multi-model AI, chat, versioning, and real-time sync to Roblox Studio.",
 };
 
 export default function RootLayout({

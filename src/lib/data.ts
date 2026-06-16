@@ -1,125 +1,146 @@
 export const brand = {
-  name: "Volt",
-  tagline: "Ship AI workflows without the chaos.",
+  name: "LimeForge",
+  tagline: "AI copilot for Roblox Studio. Prompt → Luau → sync.",
 };
 
 export const navLinks = [
   { label: "Product", href: "#product" },
   { label: "Features", href: "#features" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "Blog", href: "#blog" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Changelog", href: "/changelog" },
 ];
 
-export const socialBrands = ["Discord", "Twitch", "Notion", "Figma", "Linear"];
+export const stats = {
+  creators: "18,000+",
+  generations: "2.4M+",
+  models: "5",
+};
+
+export const socialBrands = ["Roblox", "Discord", "GitHub", "Studio", "DevForum"];
 
 export const features = [
   {
     icon: "Zap",
-    title: "Instant pipelines",
+    title: "Multi-model AI",
     description:
-      "Chain prompts, tools, and webhooks in minutes. No YAML, no DevOps degree required.",
+      "Sonnet, Opus, GPT-4o, Gemini, or local Ollama — switch per task without leaving the editor.",
   },
   {
     icon: "Shield",
-    title: "Private by default",
+    title: "Studio sync",
     description:
-      "Your data stays in your workspace. End-to-end encryption on every run.",
+      "Generated Luau pushes to your open Roblox place in real time via the LimeForge plugin.",
   },
   {
     icon: "Users",
-    title: "Built for teams",
+    title: "Version history",
     description:
-      "Share templates, review outputs, and ship together without stepping on each other.",
+      "Every generation is saved with diffs. Roll back a script like Figma, ship like Linear.",
   },
 ];
 
 export const steps = [
   {
-    title: "Connect your stack",
-    description: "Plug in Notion, Slack, GitHub, or any API with one click.",
+    title: "Describe the feature",
+    description: '"Add a daily reward system with DataStore persistence."',
   },
   {
-    title: "Design the flow",
-    description: "Drag nodes, set triggers, and preview outputs in real time.",
+    title: "Pick your model",
+    description: "Fast Sonnet for iteration, Opus for complex game systems.",
   },
   {
-    title: "Ship to production",
-    description: "Deploy with one button. Monitor runs from a single dashboard.",
+    title: "Sync to Studio",
+    description: "One click — script lands in the right folder in Roblox Studio.",
   },
 ];
 
 export const testimonials = [
   {
-    quote: "We replaced three internal tools with Volt in a weekend. Insane.",
-    name: "Marco R.",
-    role: "Indie hacker",
+    quote: "Shipped our obby shop UI in one afternoon. Studio sync is magic.",
+    name: "Luca M.",
+    role: "Roblox dev · 2M visits",
     rating: 5,
   },
   {
-    quote: "Finally an AI product that doesn't feel like a science project.",
-    name: "Sara L.",
-    role: "Content lead",
+    quote: "Version history saved me when Opus overwrote my combat module.",
+    name: "Sofia R.",
+    role: "Scripter",
     rating: 5,
   },
   {
-    quote: "Our community mods use it daily. Onboarding took ten minutes.",
-    name: "Alex K.",
-    role: "Community manager",
+    quote: "Finally AI that speaks Luau, not generic JS snippets.",
+    name: "Jay T.",
+    role: "Studio creator",
     rating: 5,
   },
   {
-    quote: "Pricing is fair, UX is sharp. Rare combo in this space.",
-    name: "Diego M.",
-    role: "Startup founder",
+    quote: "Model switcher is exactly what Lemonade does — but for Roblox.",
+    name: "Emma K.",
+    role: "Indie studio",
     rating: 5,
   },
   {
-    quote: "The lime accent is chef's kiss. But seriously, it just works.",
-    name: "Emma T.",
-    role: "Product designer",
-    rating: 5,
-  },
-  {
-    quote: "We run 2k automations a month. Zero downtime so far.",
+    quote: "Free tier is enough for hobby projects. Pro pays for itself.",
     name: "Noah P.",
-    role: "Ops engineer",
+    role: "Game designer",
+    rating: 5,
+  },
+  {
+    quote: "Our team shares projects and templates. Huge for jam weekends.",
+    name: "Diego A.",
+    role: "Team lead",
     rating: 5,
   },
 ];
 
 export const plans = [
   {
-    name: "Starter",
+    name: "Free",
     price: 0,
-    description: "For solo builders testing ideas.",
-    features: ["3 active flows", "500 runs / month", "Community support"],
+    description: "For hobby creators testing ideas.",
+    features: ["50 requests / month", "Claude Sonnet only", "5 projects", "No versioning"],
     cta: "Start free",
     popular: false,
   },
   {
     name: "Pro",
-    price: 19,
-    description: "For creators shipping every week.",
+    price: 12,
+    description: "For builders shipping every week.",
     features: [
-      "Unlimited flows",
-      "10k runs / month",
-      "Priority support",
-      "Team templates",
+      "Unlimited requests",
+      "All AI models + Ollama",
+      "Unlimited projects",
+      "30-day version history",
+      "Studio sync priority",
     ],
     cta: "Get Pro",
     popular: true,
   },
   {
-    name: "Studio",
-    price: 49,
-    description: "For agencies and growing teams.",
+    name: "Team",
+    price: 29,
+    description: "For studios and collab jams.",
     features: [
       "Everything in Pro",
-      "50k runs / month",
-      "SSO & audit logs",
-      "Dedicated onboarding",
+      "Shared workspace",
+      "Unlimited versioning",
+      "Admin + invites",
+      "API keys",
     ],
-    cta: "Talk to sales",
+    cta: "Get Team",
     popular: false,
+  },
+];
+
+export const changelog = [
+  {
+    date: "2026-06-16",
+    title: "LimeForge v0.1 — local workspace",
+    items: ["3-column app UI", "Model switcher", "Streaming mock AI", "Version timeline"],
+  },
+  {
+    date: "2026-06-10",
+    title: "Studio plugin alpha",
+    items: ["Push Luau to open place", "File tree mapping", "Sync status indicator"],
   },
 ];

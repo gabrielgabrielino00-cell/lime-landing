@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Button from "@/components/ui/Button";
 
 export default function FinalCTA() {
@@ -12,16 +13,18 @@ export default function FinalCTA() {
       />
       <div className="relative mx-auto max-w-3xl text-center">
         <h2 className="font-display text-4xl font-bold uppercase tracking-tight md:text-5xl">
-          Ready to ship your first flow?
+          Start free in 30 seconds
         </h2>
         <p className="mt-4 text-lg text-text-muted">
-          Join thousands of creators building with Volt today.
+          Open the workspace, pick a model, sync Luau to Studio.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <Button glow>Get started free</Button>
-          <a href="#pricing" className="text-sm text-text-muted hover:text-accent">
+          <Link href="/app">
+            <Button glow>Get started free</Button>
+          </Link>
+          <Link href="/pricing" className="text-sm text-text-muted hover:text-accent">
             No credit card required →
-          </a>
+          </Link>
         </div>
       </div>
     </section>
